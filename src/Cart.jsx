@@ -16,7 +16,7 @@ function Cart() {
       setLoading(true);
       setError(null);
       try {
-        // First, get all carts and find the user's cart
+        // First, get all carts and find all user's active carts and combine items
         const cartRes = await fetch(
           "https://flipkart-backend4.onrender.com/carts"
         );
@@ -37,7 +37,6 @@ function Cart() {
           return;
         }
 
-        // Combine all items from all user carts
         let allCartItems = [];
         userCarts.forEach((cart) => {
           if (cart.items && cart.items.length) {
