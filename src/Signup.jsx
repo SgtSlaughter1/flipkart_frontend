@@ -3,17 +3,20 @@ import { Box, TextField, Button } from "@mui/material";
 import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
   const handleSignup = async () => {
     setError("");
     const res = await fetch(
       "https://flipkart-backend4.onrender.com/auth/signup",
       {
         method: "POST",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
         headers: { "Content-Type": "application/json" },
       }
     );
@@ -25,8 +28,29 @@ function Signup() {
       setError(data.error || "Signup failed");
     }
   };
+
   return (
     <Box maxWidth={400} mx="auto" p={2}>
+      <TextField
+        type="text"
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+        label="First Name"
+        fullWidth
+        margin="normal"
+        variant="outlined"
+        required
+      />
+      <TextField
+        type="text"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+        label="Last Name"
+        fullWidth
+        margin="normal"
+        variant="outlined"
+        required
+      />
       <TextField
         type="email"
         value={email}
@@ -35,6 +59,7 @@ function Signup() {
         fullWidth
         margin="normal"
         variant="outlined"
+        required
       />
       <TextField
         type="password"
@@ -44,6 +69,7 @@ function Signup() {
         fullWidth
         margin="normal"
         variant="outlined"
+        required
       />
       {error && (
         <Box color="red" my={1}>

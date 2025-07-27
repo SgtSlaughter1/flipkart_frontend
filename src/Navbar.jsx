@@ -57,10 +57,9 @@ const Navbar = () => {
         );
 
         if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
+          const data = await response.json();
+          setUser(data.user);
         } else {
-          // Token might be invalid
           localStorage.removeItem("token");
           navigate("/login");
         }
@@ -162,7 +161,7 @@ const Navbar = () => {
               <span className="hidden sm:inline text-blue-700">
                 {loading
                   ? "..."
-                  : user?.name || user?.email?.split("@")[0] || "User"}
+                  : user?.firstName || user?.email?.split("@")[0] || "User"}
               </span>
               <span className="text-xs">▼</span>
             </span>

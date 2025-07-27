@@ -21,8 +21,8 @@ function Profile() {
         );
 
         if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
+          const data = await response.json();
+          setUser(data.user);
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -51,7 +51,7 @@ function Profile() {
             <div>
               <div className="text-gray-500 text-sm">Hello,</div>
               <div className="font-semibold text-lg text-gray-800">
-                {user?.name || user?.email?.split("@")[0] || "User"}
+                {user?.firstName || user?.email?.split("@")[0] || "User"}
               </div>
             </div>
           </div>
@@ -117,14 +117,16 @@ function Profile() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <input
               type="text"
-              value={user?.firstName || user?.name?.split(" ")[0] || ""}
+              value={user?.firstName || ""}
               readOnly
+              placeholder="First Name"
               className="border rounded px-3 py-2 bg-gray-100"
             />
             <input
               type="text"
-              value={user?.lastName || user?.name?.split(" ")[1] || ""}
+              value={user?.lastName || ""}
               readOnly
+              placeholder="Last Name"
               className="border rounded px-3 py-2 bg-gray-100"
             />
           </div>
@@ -163,6 +165,7 @@ function Profile() {
             type="text"
             value={user?.phone || ""}
             readOnly
+            placeholder="Mobile Number"
             className="border rounded px-3 py-2 bg-gray-100 w-full mb-4"
           />
 
@@ -172,7 +175,17 @@ function Profile() {
             <div className="text-gray-700 mb-1">
               What happens when I update my email address (or mobile number)?
             </div>
-            {/* Add more FAQ items as needed */}
+            <div className="text-gray-600 text-sm mb-4">
+              Your login email id changes, likewise for Flipkart Plus benefits
+            </div>
+            <div className="text-gray-700 mb-1">
+              When will my Flipkart account be updated with the new email
+              address/mobile number?
+            </div>
+            <div className="text-gray-600 text-sm">
+              It happens as soon as you confirm the verification code sent to
+              your email/mobile and save the changes.
+            </div>
           </div>
         </div>
       </div>
