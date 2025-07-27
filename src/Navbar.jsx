@@ -1,21 +1,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-const categories = [
-  { name: "Grocery", icon: "🛒", route: "/category/grocery" },
-  { name: "Mobiles", icon: "📱", route: "/category/mobiles" },
-  { name: "Fashion", icon: "👗", route: "/category/fashion" },
-  { name: "Electronics", icon: "💻", route: "/category/electronics" },
-  { name: "Home & Furniture", icon: "🛋️", route: "/category/home-furniture" },
-  { name: "Appliances", icon: "🔌", route: "/category/appliances" },
-  { name: "Flight Bookings", icon: "✈️", route: "/category/flight-bookings" },
-  {
-    name: "Beauty, Toys & More",
-    icon: "🧸",
-    route: "/category/beauty-toys-more",
-  },
-  { name: "Two Wheelers", icon: "🏍️", route: "/category/two-wheelers" },
-];
+// const categories = [
+//   { name: "Grocery", icon: "🛒", route: "/category/grocery" },
+//   { name: "Mobiles", icon: "📱", route: "/category/mobiles" },
+//   { name: "Fashion", icon: "👗", route: "/category/fashion" },
+//   { name: "Electronics", icon: "💻", route: "/category/electronics" },
+//   { name: "Home & Furniture", icon: "🛋️", route: "/category/home-furniture" },
+//   { name: "Appliances", icon: "🔌", route: "/category/appliances" },
+//   { name: "Flight Bookings", icon: "✈️", route: "/category/flight-bookings" },
+//   {
+//     name: "Beauty, Toys & More",
+//     icon: "🧸",
+//     route: "/category/beauty-toys-more",
+//   },
+//   { name: "Two Wheelers", icon: "🏍️", route: "/category/two-wheelers" },
+// ];
 
 const userMenu = [
   { label: "My Profile", icon: "👤", route: "/profile" },
@@ -34,6 +34,7 @@ const Navbar = () => {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cartCount, setCartCount] = useState(0); // Cart count state
   const userMenuTimeout = useRef();
   const navigate = useNavigate();
 
@@ -71,7 +72,42 @@ const Navbar = () => {
     };
 
     fetchUserData();
+    fetchCartCount(); // Add this to fetch cart count on load
   }, [navigate]);
+
+  const fetchCartCount = async () => {
+    try {
+      const cartRes = await fetch(
+        "https://flipkart-backend4.onrender.com/carts"
+      );
+      const cartData = await cartRes.json();
+
+      if (cartData.success) {
+        // Find all active carts for user and sum up items
+        const userCarts = cartData.data.filter(
+          (cart) => cart.userId === "1" && cart.status === "active"
+        );
+        let totalItems = 0;
+
+        userCarts.forEach((cart) => {
+          if (cart.items) {
+            totalItems += cart.items.reduce(
+              (sum, item) => sum + item.quantity,
+              0
+            );
+          }
+        });
+
+        setCartCount(totalItems);
+      }
+    } catch (error) {
+      console.error("Failed to fetch cart count:", error);
+      setCartCount(0);
+    }
+  };
+
+  // Add this function to update cart count from other components
+  window.updateCartCount = fetchCartCount;
 
   // Handlers to keep dropdown open when hovering over either button or menu
   const handleUserMenuEnter = () => {
@@ -136,9 +172,11 @@ const Navbar = () => {
           >
             <span className="text-lg md:text-xl mr-1">🛒</span>
             <span className="hidden sm:inline">Cart</span>
-            <span className="absolute -top-2 -right-2 md:-right-4 bg-red-500 text-white rounded-full px-1.5 md:px-2 text-xs">
-              1
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 md:-right-4 bg-red-500 text-white rounded-full px-1.5 md:px-2 text-xs">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           <Link
@@ -202,7 +240,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="hidden md:flex justify-around items-end py-4 border-b border-gray-100 bg-white overflow-x-auto">
+      {/* <div className="hidden md:flex justify-around items-end py-4 border-b border-gray-100 bg-white overflow-x-auto">
         {categories.map((cat) => (
           <Link
             to={cat.route}
@@ -215,7 +253,7 @@ const Navbar = () => {
             </div>
           </Link>
         ))}
-      </div>
+      </div> */}
     </nav>
   );
 };

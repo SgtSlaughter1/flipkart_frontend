@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
-  const [savedItems, setSavedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,109 +16,160 @@ function Cart() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch all carts
+        // First, get all carts and find the user's cart
         const cartRes = await fetch(
           "https://flipkart-backend4.onrender.com/carts"
         );
         const cartData = await cartRes.json();
-        if (!cartData.success) throw new Error("Failed to fetch carts");
-        // Find all carts for the current user and merge their items
-        const userCarts = Array.isArray(cartData.data)
-          ? cartData.data.filter((c) => c.userId === userId)
-          : [];
-        // Flatten all items from all carts
-        let cartItemsRaw = [];
-        userCarts.forEach((cart) => {
-          if (Array.isArray(cart.items)) {
-            cart.items.forEach((item) => {
-              cartItemsRaw.push(item);
-            });
-          }
-        });
-        // Combine quantities for duplicate productIds
-        const combinedItemsMap = {};
-        cartItemsRaw.forEach((item) => {
-          const key = String(item.productId);
-          if (combinedItemsMap[key]) {
-            combinedItemsMap[key].quantity += item.quantity || 1;
-          } else {
-            combinedItemsMap[key] = { ...item };
-          }
-        });
-        const combinedCartItemsRaw = Object.values(combinedItemsMap);
 
-        // Fetch all products
-        const prodRes = await fetch(
+        if (!cartData.success) {
+          setCartItems([]);
+          return;
+        }
+
+        // Find all user's active carts and combine items
+        const userCarts = cartData.data.filter(
+          (cart) => cart.userId === userId && cart.status === "active"
+        );
+
+        if (!userCarts.length) {
+          setCartItems([]);
+          return;
+        }
+
+        // Combine all items from all user carts
+        let allCartItems = [];
+        userCarts.forEach((cart) => {
+          if (cart.items && cart.items.length) {
+            allCartItems = allCartItems.concat(cart.items);
+          }
+        });
+
+        if (!allCartItems.length) {
+          setCartItems([]);
+          return;
+        }
+
+        // Fetch all products to get product details
+        const productsRes = await fetch(
           "https://flipkart-backend4.onrender.com/products"
         );
-        const productsResponse = await prodRes.json();
-        // Robustly flatten all nested products arrays
+        const productsData = await productsRes.json();
+
+        // Flatten products array
         let allProducts = [];
-        if (Array.isArray(productsResponse)) {
-          productsResponse.forEach((doc) => {
+        if (
+          Array.isArray(productsData) &&
+          productsData.length > 0 &&
+          productsData[0].products
+        ) {
+          productsData.forEach((doc) => {
             if (Array.isArray(doc.products)) {
               allProducts = allProducts.concat(doc.products);
             }
           });
+        } else if (Array.isArray(productsData)) {
+          allProducts = productsData;
         }
 
-        // Merge cart items with product details
-        const mergedCartItems = combinedCartItemsRaw.map((item) => {
-          // Match productId (from cart) to product.id (from products)
-          const product = allProducts.find(
-            (p) => String(p.id) === String(item.productId)
-          );
-          return product
-            ? {
-                ...product,
-                quantity: item.quantity || 1,
-                productId: item.productId,
-              }
-            : {
-                productId: item.productId,
-                quantity: item.quantity || 1,
-                missing: true,
-              };
-        });
-        setCartItems(mergedCartItems);
+        // Combine cart items with product details
+        const cartItemsWithDetails = allCartItems
+          .map((cartItem) => {
+            const product = allProducts.find(
+              (p) => p._id === cartItem.productId
+            );
+            return {
+              ...cartItem,
+              ...product,
+              quantity: cartItem.quantity,
+            };
+          })
+          .filter((item) => item.title); // Filter out items where product wasn't found
+
+        setCartItems(cartItemsWithDetails);
       } catch (err) {
+        console.error("Cart fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     }
+
     fetchCartAndProducts();
   }, []);
 
-  const handleQuantity = (idx, delta) => {
-    const items = [...cartItems];
-    if ((items[idx].quantity || 1) + delta > 0) {
-      items[idx].quantity = (items[idx].quantity || 1) + delta;
-      setCartItems(items);
+  const handleQuantity = async (idx, delta) => {
+    const item = cartItems[idx];
+    const newQuantity = (item.quantity || 1) + delta;
+
+    if (newQuantity <= 0) {
+      handleRemove(idx);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://flipkart-backend4.onrender.com/cart/add",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productId: item.productId || item._id,
+            quantity: delta, // Add the delta, not the total quantity
+            userId: userId, // Changed from 'user' to 'userId'
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        const items = [...cartItems];
+        items[idx].quantity = newQuantity;
+        setCartItems(items);
+      }
+    } catch (error) {
+      console.error("Update quantity error:", error);
     }
   };
 
-  const handleRemove = (idx) => {
-    const items = [...cartItems];
-    items.splice(idx, 1);
-    setCartItems(items);
+  const handleRemove = async (idx) => {
+    const item = cartItems[idx];
+
+    try {
+      const response = await fetch(
+        `https://flipkart-backend4.onrender.com/cart/${userId}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            productId: item.productId || item._id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        const items = [...cartItems];
+        items.splice(idx, 1);
+        setCartItems(items);
+      }
+    } catch (error) {
+      console.error("Remove item error:", error);
+    }
   };
 
-  // Pricing logic (fallbacks for missing product info)
+  // Pricing logic
   const price = cartItems.reduce(
-    (sum, item) =>
-      sum + (item.originalPrice || item.price || 0) * (item.quantity || 1),
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 1),
     0
   );
-  const discount = cartItems.reduce(
-    (sum, item) =>
-      sum +
-      ((item.originalPrice || item.price || 0) - (item.price || 0)) *
-        (item.quantity || 1),
-    0
-  );
+  const discount = cartItems.reduce((sum, item) => {
+    const originalPrice =
+      item.price / (1 - (item.discountPercentage || 0) / 100);
+    return sum + (originalPrice - item.price) * (item.quantity || 1);
+  }, 0);
   const platformFee = 4;
-  const total = price - discount + platformFee;
+  const total = price + platformFee;
 
   if (loading) return <div className="p-8 text-center">Loading cart...</div>;
   if (error)
@@ -151,14 +201,14 @@ function Cart() {
 
           {cartItems.map((item, idx) => (
             <div
-              key={item.productId || idx}
+              key={item.productId || item._id || idx}
               className="bg-white rounded shadow p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between"
             >
               <div className="flex items-start gap-4 flex-1">
                 {item.thumbnail ? (
                   <img
                     src={item.thumbnail}
-                    alt={item.title || item.productId}
+                    alt={item.title || "Product"}
                     className="w-24 h-28 object-cover rounded"
                   />
                 ) : (
@@ -171,68 +221,47 @@ function Cart() {
                     {item.title || "Unknown Product"}
                   </div>
                   <div className="text-gray-500 text-sm mb-1">
-                    Size: {item.size || "--"}
+                    Brand: {item.brand || "--"}
                   </div>
                   <div className="text-gray-400 text-xs mb-1">
-                    Seller: {item.seller || "SandSMarketing"}
-                  </div>
-                  <div className="text-gray-400 text-xs mb-1">
-                    Delivery by Sat Jul 26
+                    Category: {item.category || "--"}
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    {item.originalPrice && (
-                      <span className="line-through text-gray-400">
-                        ₹{item.originalPrice}
-                      </span>
-                    )}
                     <span className="text-lg font-bold text-gray-800">
                       ₹{item.price || "--"}
                     </span>
                     {item.discountPercentage && (
                       <span className="text-green-600 font-semibold text-sm">
-                        {item.discountPercentage}% Off
+                        {Math.round(item.discountPercentage)}% Off
                       </span>
                     )}
-                    <span className="text-green-700 text-xs">
-                      4 offers available
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Or Pay ₹{item.price ? Math.round(item.price * 0.95) : "--"}{" "}
-                    + <span className="text-yellow-600 font-bold">28</span>
                   </div>
                   <div className="flex items-center gap-2 mt-3">
                     <button
                       onClick={() => handleQuantity(idx, -1)}
-                      className="border px-2 py-1 rounded"
+                      className="border px-2 py-1 rounded hover:bg-gray-50"
                     >
                       -
                     </button>
                     <span className="px-2">{item.quantity || 1}</span>
                     <button
                       onClick={() => handleQuantity(idx, 1)}
-                      className="border px-2 py-1 rounded"
+                      className="border px-2 py-1 rounded hover:bg-gray-50"
                     >
                       +
                     </button>
                   </div>
                   <div className="flex items-center gap-6 mt-3">
-                    {/* Save for later logic can be added here */}
                     <button
                       onClick={() => handleRemove(idx)}
-                      className="text-gray-600 font-semibold"
+                      className="text-gray-600 font-semibold hover:text-red-600"
                     >
                       REMOVE
                     </button>
                   </div>
-                  {item.missing && (
-                    <div className="text-xs text-red-500 mt-2">
-                      Product details not found.
-                    </div>
-                  )}
                 </div>
               </div>
-              <button className="bg-orange-500 text-white px-8 py-2 rounded font-bold mt-4 md:mt-0 self-end md:self-center">
+              <button className="bg-orange-500 text-white px-8 py-2 rounded font-bold mt-4 md:mt-0 self-end md:self-center hover:bg-orange-600">
                 PLACE ORDER
               </button>
             </div>
@@ -247,11 +276,11 @@ function Cart() {
                 Price ({cartItems.length} item
                 {cartItems.length !== 1 ? "s" : ""})
               </span>
-              <span>₹{price}</span>
+              <span>₹{Math.round(price)}</span>
             </div>
             <div className="flex justify-between mb-2 text-sm">
               <span>Discount</span>
-              <span className="text-green-600">- ₹{discount}</span>
+              <span className="text-green-600">- ₹{Math.round(discount)}</span>
             </div>
             <div className="flex justify-between mb-2 text-sm">
               <span>Platform Fee</span>
@@ -260,10 +289,10 @@ function Cart() {
             <hr className="my-2" />
             <div className="flex justify-between mb-2 font-bold text-base">
               <span>Total Amount</span>
-              <span>₹{total}</span>
+              <span>₹{Math.round(total)}</span>
             </div>
             <div className="text-green-700 text-sm mt-2">
-              You will save ₹{discount} on this order
+              You will save ₹{Math.round(discount)} on this order
             </div>
           </div>
         </div>
