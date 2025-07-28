@@ -24,6 +24,7 @@ import Carousel from "./Carousel";
 import ChartJS from "chart.js/auto";
 import Cart from "./Cart";
 import Products from "./Products";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -421,9 +422,11 @@ function App() {
       });
   }, []);
   return (
-    <Router>
-      <AppContent products={products} />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent products={products} />
+      </Router>
+    </AuthProvider>
   );
 }
 

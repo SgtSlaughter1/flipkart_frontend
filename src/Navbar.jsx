@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 
 // const categories = [
 //   { name: "Grocery", icon: "🛒", route: "/category/grocery" },
@@ -30,81 +31,9 @@ const userMenu = [
 ];
 
 const Navbar = () => {
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [cartCount, setCartCount] = useState(0); // Cart count state
+  const { user, loading, cartCount, updateCartCount } = useAuth();
   const userMenuTimeout = useRef();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch(
-          "https://flipkart-backend4.onrender.com/auth/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
-          localStorage.removeItem("token");
-          navigate("/login");
-        }
-      } catch (error) {
-        console.error("Failed to fetch user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-    fetchCartCount(); // Add this to fetch cart count on load
-  }, [navigate]);
-
-  const fetchCartCount = async () => {
-    try {
-      const cartRes = await fetch(
-        "https://flipkart-backend4.onrender.com/carts"
-      );
-      const cartData = await cartRes.json();
-
-      if (cartData.success) {
-        // Find all active carts for user and count unique items
-        const userCarts = cartData.data.filter(
-          (cart) => cart.userId === "1" && cart.status === "active"
-        );
-        let totalItems = 0;
-
-        userCarts.forEach((cart) => {
-          if (cart.items) {
-            totalItems += cart.items.length; // Count of items, not quantity
-          }
-        });
-
-        setCartCount(totalItems);
-      }
-    } catch (error) {
-      console.error("Failed to fetch cart count:", error);
-      setCartCount(0);
-    }
-  };
-
-  // Add this function to update cart count from other components
-  window.updateCartCount = fetchCartCount;
 
   // Handlers to keep dropdown open when hovering over either button or menu
   const handleUserMenuEnter = () => {
