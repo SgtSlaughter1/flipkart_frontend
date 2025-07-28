@@ -143,284 +143,255 @@ function AppContent({ products }) {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile" element={<Profile />} />
-          <Route
-            path="/products"
-            element={
-              <RequireAuth>
-                <Products />
-              </RequireAuth>
-            }
-          />
+          <Route path="/products" element={<Products />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/cart" element={<Cart />} />
           <Route
             path="/"
             element={
-              <RequireAuth>
-                <div>
-                  {/* Hero Section */}
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 mb-8 rounded-lg">
-                    <div className="max-w-6xl mx-auto px-4 text-center">
-                      <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                        Welcome to Flipkart
-                      </h1>
-                      <p className="text-xl md:text-2xl mb-8 opacity-90">
-                        India's Biggest Online Store
-                      </p>
-                      <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold">10M+</div>
-                          <div className="text-sm opacity-80">Products</div>
-                        </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold">50M+</div>
-                          <div className="text-sm opacity-80">
-                            Happy Customers
-                          </div>
-                        </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold">1000+</div>
-                          <div className="text-sm opacity-80">Brands</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Carousel */}
-                  <Carousel />
-
-                  {/* Quick Categories */}
-                  <div className="mb-12">
-                    <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">
-                      Shop by Category
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-                      {categories.map((category, idx) => {
-                        const categoryInfo =
-                          categoryIcons[category] || categoryIcons.default;
-                        return (
-                          <Link
-                            key={idx}
-                            to={`/products?category=${category}`}
-                            className={`${categoryInfo.color} rounded-xl p-6 text-center hover:scale-105 transition-transform cursor-pointer shadow-sm hover:shadow-md block`}
-                          >
-                            <div className="text-4xl mb-2">
-                              {categoryInfo.icon}
-                            </div>
-                            <div className="font-semibold text-gray-800 text-sm">
-                              {category.charAt(0).toUpperCase() +
-                                category.slice(1).replace("-", " ")}
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Featured Deals */}
-                  <div className="mb-12">
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-8 text-center mb-8">
-                      <h2 className="text-3xl font-bold mb-2">
-                        🔥 Today's Best Deals
-                      </h2>
-                      <p className="text-lg opacity-90">
-                        Limited time offers - Don't miss out!
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Category-based product listing */}
-                  {Object.entries(categoryProducts).map(
-                    ([category, products]) => (
-                      <div key={category} className="mb-12">
-                        <div className="flex items-center justify-between mb-6">
-                          <h2 className="text-2xl font-bold text-gray-800">
-                            {category.charAt(0).toUpperCase() +
-                              category.slice(1).replace("-", " ")}
-                          </h2>
-                          <Link
-                            to={`/products?category=${category}`}
-                            className="text-blue-600 font-semibold hover:text-blue-800"
-                          >
-                            View All →
-                          </Link>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                          {products.map((product, idx) => (
-                            <div
-                              key={product._id || idx}
-                              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 flex flex-col items-start border border-gray-100"
-                            >
-                              <div className="relative w-full mb-3">
-                                <img
-                                  src={product.thumbnail}
-                                  alt={product.title}
-                                  className="w-full h-40 object-contain rounded"
-                                />
-                                {product.discountPercentage && (
-                                  <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                    {Math.round(product.discountPercentage)}%
-                                    OFF
-                                  </div>
-                                )}
-                              </div>
-                              <div className="font-semibold text-base mb-2 line-clamp-2 min-h-[48px]">
-                                {product.title}
-                              </div>
-                              <div className="text-gray-600 text-sm mb-2 line-clamp-2 min-h-[32px]">
-                                {product.description}
-                              </div>
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className="text-blue-600 font-bold text-lg">
-                                  ₹{product.price}
-                                </span>
-                                {product.discountPercentage && (
-                                  <span className="text-gray-400 line-through text-sm">
-                                    ₹
-                                    {Math.round(
-                                      product.price /
-                                        (1 - product.discountPercentage / 100)
-                                    )}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center justify-between w-full mb-2">
-                                <div className="flex items-center">
-                                  <span className="bg-green-600 text-white text-xs font-semibold px-2 py-0.5 rounded mr-2">
-                                    {product.rating} ★
-                                  </span>
-                                </div>
-                                <span className="text-xs text-gray-500">
-                                  Stock: {product.stock}
-                                </span>
-                              </div>
-                              <div className="text-xs text-gray-500 mb-3">
-                                Brand: {product.brand}
-                              </div>
-                              <div className="flex gap-2 mt-auto w-full">
-                                <button
-                                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                                  onClick={async () => {
-                                    try {
-                                      const response = await fetch(
-                                        "https://flipkart-backend4.onrender.com/cart/add",
-                                        {
-                                          method: "POST",
-                                          headers: {
-                                            "Content-Type": "application/json",
-                                          },
-                                          body: JSON.stringify({
-                                            productId: product._id, // Use only _id for consistency
-                                            quantity: 1,
-                                            userId: "1", // Changed from 'user' to 'userId'
-                                          }),
-                                        }
-                                      );
-
-                                      const data = await response.json();
-                                      if (data.success) {
-                                        // Update cart count in navbar
-                                        if (window.updateCartCount) {
-                                          window.updateCartCount();
-                                        }
-                                        alert("Added to cart!");
-                                      } else {
-                                        throw new Error(
-                                          data.message ||
-                                            "Failed to add to cart"
-                                        );
-                                      }
-                                    } catch (error) {
-                                      console.error(
-                                        "Add to cart error:",
-                                        error
-                                      );
-                                      alert("Failed to add to cart");
-                                    }
-                                  }}
-                                >
-                                  Add to Cart
-                                </button>
-                                <button
-                                  className="flex-1 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
-                                  onClick={async () => {
-                                    try {
-                                      const response = await fetch(
-                                        "https://flipkart-backend4.onrender.com/cart/add",
-                                        {
-                                          method: "POST",
-                                          headers: {
-                                            "Content-Type": "application/json",
-                                          },
-                                          body: JSON.stringify({
-                                            productId: product._id, // Use only _id for consistency
-                                            quantity: 1,
-                                            userId: "1", // Changed from 'user' to 'userId'
-                                          }),
-                                        }
-                                      );
-
-                                      const data = await response.json();
-                                      if (data.success) {
-                                        window.location.href = "/cart";
-                                      } else {
-                                        throw new Error(
-                                          data.message ||
-                                            "Failed to add to cart"
-                                        );
-                                      }
-                                    } catch (error) {
-                                      console.error("Buy now error:", error);
-                                      alert("Failed to add to cart");
-                                    }
-                                  }}
-                                >
-                                  Buy Now
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  )}
-
-                  {/* Newsletter Section */}
-                  <div className="bg-gray-100 rounded-lg p-8 text-center mb-8">
-                    <h3 className="text-2xl font-bold mb-4 text-gray-800">
-                      Stay Updated with Latest Deals
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                      Subscribe to get notifications about new products and
-                      exclusive offers
+              <div>
+                {/* Hero Section */}
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 mb-8 rounded-lg">
+                  <div className="max-w-6xl mx-auto px-4 text-center">
+                    <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                      Welcome to Flipkart
+                    </h1>
+                    <p className="text-xl md:text-2xl mb-8 opacity-90">
+                      India's Biggest Online Store
                     </p>
-                    <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                      <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Subscribe
-                      </button>
+                    <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold">10M+</div>
+                        <div className="text-sm opacity-80">Products</div>
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold">50M+</div>
+                        <div className="text-sm opacity-80">
+                          Happy Customers
+                        </div>
+                      </div>
+                      <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold">1000+</div>
+                        <div className="text-sm opacity-80">Brands</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/search"
-            element={
-              <RequireAuth>
-                <Search />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/cart"
-            element={
-              <RequireAuth>
-                <Cart />
-              </RequireAuth>
+
+                {/* Carousel */}
+                <Carousel />
+
+                {/* Quick Categories */}
+                <div className="mb-12">
+                  <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">
+                    Shop by Category
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                    {categories.map((category, idx) => {
+                      const categoryInfo =
+                        categoryIcons[category] || categoryIcons.default;
+                      return (
+                        <Link
+                          key={idx}
+                          to={`/products?category=${category}`}
+                          className={`${categoryInfo.color} rounded-xl p-6 text-center hover:scale-105 transition-transform cursor-pointer shadow-sm hover:shadow-md block`}
+                        >
+                          <div className="text-4xl mb-2">
+                            {categoryInfo.icon}
+                          </div>
+                          <div className="font-semibold text-gray-800 text-sm">
+                            {category.charAt(0).toUpperCase() +
+                              category.slice(1).replace("-", " ")}
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Featured Deals */}
+                <div className="mb-12">
+                  <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg p-8 text-center mb-8">
+                    <h2 className="text-3xl font-bold mb-2">
+                      🔥 Today's Best Deals
+                    </h2>
+                    <p className="text-lg opacity-90">
+                      Limited time offers - Don't miss out!
+                    </p>
+                  </div>
+                </div>
+
+                {/* Category-based product listing */}
+                {Object.entries(categoryProducts).map(
+                  ([category, products]) => (
+                    <div key={category} className="mb-12">
+                      <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold text-gray-800">
+                          {category.charAt(0).toUpperCase() +
+                            category.slice(1).replace("-", " ")}
+                        </h2>
+                        <Link
+                          to={`/products?category=${category}`}
+                          className="text-blue-600 font-semibold hover:text-blue-800"
+                        >
+                          View All →
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {products.map((product, idx) => (
+                          <div
+                            key={product._id || idx}
+                            className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4 flex flex-col items-start border border-gray-100"
+                          >
+                            <div className="relative w-full mb-3">
+                              <img
+                                src={product.thumbnail}
+                                alt={product.title}
+                                className="w-full h-40 object-contain rounded"
+                              />
+                              {product.discountPercentage && (
+                                <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
+                                  {Math.round(product.discountPercentage)}% OFF
+                                </div>
+                              )}
+                            </div>
+                            <div className="font-semibold text-base mb-2 line-clamp-2 min-h-[48px]">
+                              {product.title}
+                            </div>
+                            <div className="text-gray-600 text-sm mb-2 line-clamp-2 min-h-[32px]">
+                              {product.description}
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-blue-600 font-bold text-lg">
+                                ₹{product.price}
+                              </span>
+                              {product.discountPercentage && (
+                                <span className="text-gray-400 line-through text-sm">
+                                  ₹
+                                  {Math.round(
+                                    product.price /
+                                      (1 - product.discountPercentage / 100)
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between w-full mb-2">
+                              <div className="flex items-center">
+                                <span className="bg-green-600 text-white text-xs font-semibold px-2 py-0.5 rounded mr-2">
+                                  {product.rating} ★
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                Stock: {product.stock}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-3">
+                              Brand: {product.brand}
+                            </div>
+                            <div className="flex gap-2 mt-auto w-full">
+                              <button
+                                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                onClick={async () => {
+                                  try {
+                                    const response = await fetch(
+                                      "https://flipkart-backend4.onrender.com/cart/add",
+                                      {
+                                        method: "POST",
+                                        headers: {
+                                          "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                          productId: product._id,
+                                          quantity: 1,
+                                          userId: "1",
+                                        }),
+                                      }
+                                    );
+
+                                    const data = await response.json();
+                                    if (data.success) {
+                                      // Update cart count in navbar
+                                      if (window.updateCartCount) {
+                                        window.updateCartCount();
+                                      }
+                                      alert("Added to cart!");
+                                    } else {
+                                      throw new Error(
+                                        data.message || "Failed to add to cart"
+                                      );
+                                    }
+                                  } catch (error) {
+                                    console.error("Add to cart error:", error);
+                                    alert("Failed to add to cart");
+                                  }
+                                }}
+                              >
+                                Add to Cart
+                              </button>
+                              <button
+                                className="flex-1 px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+                                onClick={async () => {
+                                  try {
+                                    const response = await fetch(
+                                      "https://flipkart-backend4.onrender.com/cart/add",
+                                      {
+                                        method: "POST",
+                                        headers: {
+                                          "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                          productId: product._id, // Use only _id for consistency
+                                          quantity: 1,
+                                          userId: "1", // Changed from 'user' to 'userId'
+                                        }),
+                                      }
+                                    );
+
+                                    const data = await response.json();
+                                    if (data.success) {
+                                      window.location.href = "/cart";
+                                    } else {
+                                      throw new Error(
+                                        data.message || "Failed to add to cart"
+                                      );
+                                    }
+                                  } catch (error) {
+                                    console.error("Buy now error:", error);
+                                    alert("Failed to add to cart");
+                                  }
+                                }}
+                              >
+                                Buy Now
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* Newsletter Section */}
+                <div className="bg-gray-100 rounded-lg p-8 text-center mb-8">
+                  <h3 className="text-2xl font-bold mb-4 text-gray-800">
+                    Stay Updated with Latest Deals
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Subscribe to get notifications about new products and
+                    exclusive offers
+                  </p>
+                  <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                      Subscribe
+                    </button>
+                  </div>
+                </div>
+              </div>
             }
           />
         </Routes>

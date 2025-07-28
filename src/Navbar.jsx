@@ -183,55 +183,75 @@ const Navbar = () => {
             Become a Seller
           </Link>
 
-          <div
-            className="relative font-medium cursor-pointer select-none"
-            onMouseEnter={handleUserMenuEnter}
-            onMouseLeave={handleUserMenuLeave}
-            tabIndex={0}
-            onFocus={handleUserMenuEnter}
-            onBlur={handleUserMenuLeave}
-          >
-            <span className="flex items-center gap-1">
-              <span className="text-lg">👤</span>
-              <span className="hidden sm:inline text-blue-700">
-                {loading
-                  ? "..."
-                  : user?.firstName || user?.email?.split("@")[0] || "User"}
+          {/* Conditional rendering based on authentication */}
+          {user ? (
+            // Show user menu when logged in
+            <div
+              className="relative font-medium cursor-pointer select-none"
+              onMouseEnter={handleUserMenuEnter}
+              onMouseLeave={handleUserMenuLeave}
+              tabIndex={0}
+              onFocus={handleUserMenuEnter}
+              onBlur={handleUserMenuLeave}
+            >
+              <span className="flex items-center gap-1">
+                <span className="text-lg">👤</span>
+                <span className="hidden sm:inline text-blue-700">
+                  {loading
+                    ? "..."
+                    : user?.firstName || user?.email?.split("@")[0] || "User"}
+                </span>
+                <span className="text-xs">▼</span>
               </span>
-              <span className="text-xs">▼</span>
-            </span>
-            {userMenuOpen && (
-              <div
-                className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50"
-                onMouseEnter={handleUserMenuEnter}
-                onMouseLeave={handleUserMenuLeave}
+              {userMenuOpen && (
+                <div
+                  className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 z-50"
+                  onMouseEnter={handleUserMenuEnter}
+                  onMouseLeave={handleUserMenuLeave}
+                >
+                  <ul className="py-2">
+                    {userMenu.map((item, idx) => (
+                      <li key={idx}>
+                        {item.route === "/logout" ? (
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-gray-800 text-base transition-colors"
+                          >
+                            <span className="text-lg">{item.icon}</span>
+                            <span>{item.label}</span>
+                          </button>
+                        ) : (
+                          <Link
+                            to={item.route}
+                            className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-gray-800 text-base transition-colors"
+                          >
+                            <span className="text-lg">{item.icon}</span>
+                            <span>{item.label}</span>
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Show login/signup when not logged in
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="px-3 py-1.5 text-blue-600 hover:text-blue-800 font-medium text-sm"
               >
-                <ul className="py-2">
-                  {userMenu.map((item, idx) => (
-                    <li key={idx}>
-                      {item.route === "/logout" ? (
-                        <button
-                          onClick={handleLogout}
-                          className="w-full text-left flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-gray-800 text-base transition-colors"
-                        >
-                          <span className="text-lg">{item.icon}</span>
-                          <span>{item.label}</span>
-                        </button>
-                      ) : (
-                        <Link
-                          to={item.route}
-                          className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-gray-800 text-base transition-colors"
-                        >
-                          <span className="text-lg">{item.icon}</span>
-                          <span>{item.label}</span>
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium text-sm"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
 
           <div className="text-2xl cursor-pointer">⋮</div>
         </div>

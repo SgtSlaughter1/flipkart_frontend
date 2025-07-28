@@ -288,6 +288,21 @@ function Cart() {
             <div className="text-green-700 text-sm mt-2">
               You will save ₹{Math.round(discount)} on this order
             </div>
+
+            <button
+              onClick={() => {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                  window.location.href = "/login";
+                } else {
+                  // Proceed to checkout
+                  alert("Proceeding to checkout...");
+                }
+              }}
+              className="w-full bg-orange-500 text-white py-3 rounded mt-4 font-semibold hover:bg-orange-600"
+            >
+              PLACE ORDER
+            </button>
           </div>
         </div>
       </div>
