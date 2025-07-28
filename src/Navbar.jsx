@@ -83,7 +83,7 @@ const Navbar = () => {
       const cartData = await cartRes.json();
 
       if (cartData.success) {
-        // Find all active carts for user and sum up items
+        // Find all active carts for user and count unique items
         const userCarts = cartData.data.filter(
           (cart) => cart.userId === "1" && cart.status === "active"
         );
@@ -91,10 +91,7 @@ const Navbar = () => {
 
         userCarts.forEach((cart) => {
           if (cart.items) {
-            totalItems += cart.items.reduce(
-              (sum, item) => sum + item.quantity,
-              0
-            );
+            totalItems += cart.items.length; // Count of items, not quantity
           }
         });
 
