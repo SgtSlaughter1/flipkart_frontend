@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 
@@ -32,6 +32,8 @@ const userMenu = [
 
 const Navbar = () => {
   const { user, loading, cartCount, updateCartCount } = useAuth();
+  const [search, setSearch] = useState("");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuTimeout = useRef();
   const navigate = useNavigate();
 
